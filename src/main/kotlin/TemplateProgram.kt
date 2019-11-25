@@ -1,10 +1,7 @@
-import org.openrndr.Fullscreen
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.isolated
 import org.openrndr.draw.loadFont
 import org.openrndr.shape.Circle
-import org.openrndr.shape.Color
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.compound
 import org.openrndr.text.Writer
@@ -27,17 +24,26 @@ fun main() = application {
         var nbEtages = 8
         var ScaleLimit = 0.05
 
-
         var startAnimation = 3
         var startColorAnimation = 7
-        var flag = false
+
+
 
         var colors = arrayOf<Array<ColorRGBa>>()
+
+        for (i in 0..nbEtages*2) {
+            var array = arrayOf<ColorRGBa>()
+            for (x in 0..nbEtages*2)
+                array += CreateColor()
+            colors += array
+        }
+
+        var flag = false
         var lastTimeColorChange = 0;
 
         extend {
-            var branches_haut = nbEtages
-            var branches_bas = nbEtages
+            var branchesHaut = nbEtages
+            var branchesBas = nbEtages
 
             drawer.background(ColorRGBa.BLACK)
             drawer.fontMap = font
@@ -55,26 +61,29 @@ fun main() = application {
 
             val writer = Writer(drawer)
 
+            if (seconds.toInt() > lastTimeColorChange && seconds.toInt() > startColorAnimation) {
+                flag = true
+                lastTimeColorChange = seconds.toInt()
+            }
+
             // BRANCHES
             for (etages in 0..nbEtages) {
 
                 var x = 0.0
 
                 if (etages % 2 != 0) {  // impair
-                    x = -baseScale / 2 - (kotlin.math.floor(branches_haut / 2.0) * (baseScale + spacement))
+                    x = -baseScale / 2 - (kotlin.math.floor(branchesHaut / 2.0) * (baseScale + spacement))
                 } else { //pair
                     x =
-                        -baseScale / 2 - (kotlin.math.floor(branches_haut / 2.0) * (baseScale + spacement) - (baseScale + spacement) / 2)
+                        -baseScale / 2 - (kotlin.math.floor(branchesHaut / 2.0) * (baseScale + spacement) - (baseScale + spacement) / 2)
                 }
 
-                for (i in 1..branches_haut) {
+                for (i in 1..branchesHaut) {
 
+                    if (flag)
+                        colors[etages][i] = CreateColor()
 
-                    if (seconds > startColorAnimation){
-                        drawer.fill = CreateColor()
-                    } else{
-                        drawer.fill = ColorRGBa.GREEN
-                    }
+                    drawer.fill = colors[etages][i]
 
                     writer.apply {
                         writer.box = Rectangle(
@@ -93,21 +102,18 @@ fun main() = application {
                 }
 
                 x = 0.0
-
-                if (etages % 2 != 0) {  // impair
-                    x = -baseScale / 2 - (kotlin.math.floor(branches_bas / 2.0) * (baseScale + spacement))
+                x = if (etages % 2 != 0) {  // impair
+                    -baseScale / 2 - (kotlin.math.floor(branchesBas / 2.0) * (baseScale + spacement))
                 } else { //pair
-                    x =
-                        -baseScale / 2 - (kotlin.math.floor(branches_bas / 2.0) * (baseScale + spacement) - (baseScale + spacement) / 2)
+                    -baseScale / 2 - (kotlin.math.floor(branchesBas / 2.0) * (baseScale + spacement) - (baseScale + spacement) / 2)
                 }
 
-                for (i in 0..branches_bas) {
+                for (i in 0..branchesBas) {
 
-                    if (seconds > startColorAnimation){
-                        drawer.fill = CreateColor()
-                    } else{
-                        drawer.fill = ColorRGBa.GREEN
-                    }
+                    if (flag)
+                        colors[etages][i] = CreateColor()
+
+                    drawer.fill = colors[etages][i]
 
                     writer.apply {
                         writer.box = Rectangle(
@@ -123,9 +129,11 @@ fun main() = application {
                     }
                 }
 
-                branches_haut -= 1
-                branches_bas += 1
+                branchesHaut -= 1
+                branchesBas += 1
             }
+
+            flag = false
 
             // TRONC
             drawer.fill = ColorRGBa(0.71, 0.40, 0.11)
