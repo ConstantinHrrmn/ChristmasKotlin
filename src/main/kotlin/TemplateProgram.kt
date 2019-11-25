@@ -3,31 +3,21 @@ import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.isolated
 import org.openrndr.draw.loadFont
+import org.openrndr.shape.Circle
+import org.openrndr.shape.Color
 import org.openrndr.shape.Rectangle
+import org.openrndr.shape.compound
 import org.openrndr.text.Writer
 import kotlin.random.Random
 
 fun main() = application {
     configure {
-
-        // Garde la résolution mise ci-dessous dans le fullscreen mode
         width = 600
         height = 600
-        //fullscreen = Fullscreen.SET_DISPLAY_MODE
-
-        // Met l'application en fullscreen mais en gardant la résolution de l'écran
-        //fullscreen = Fullscreen.CURRENT_DISPLAY_MODE
-
-        // Titre de la page
         title = "Lo and behold!"
     }
 
     program {
-
-        // Charger une image
-        //val image = loadImage("data/images/pm5544.png")
-
-        // Charger une font pour pouvoir écrire
         val font = loadFont("data/fonts/IBMPlexMono-Regular.ttf", 220.0)
         var multiplier = 1.0
         var speed = 0.1
@@ -40,6 +30,10 @@ fun main() = application {
 
         var startAnimation = 3
         var startColorAnimation = 7
+        var flag = false
+
+        var colors = arrayOf<Array<ColorRGBa>>()
+        var lastTimeColorChange = 0;
 
         extend {
             var branches_haut = nbEtages
@@ -75,18 +69,9 @@ fun main() = application {
 
                 for (i in 1..branches_haut) {
 
-                    if (seconds > startColorAnimation){
-                        var rnd = Random.nextInt(0, 100);
 
-                        if (rnd % 4 == 0) {
-                            drawer.fill = ColorRGBa(
-                                Random.nextDouble(0.0, 1.0),
-                                Random.nextDouble(0.0, 1.0),
-                                Random.nextDouble(0.0, 1.0)
-                            )
-                        } else {
-                            drawer.fill = ColorRGBa.GREEN
-                        }
+                    if (seconds > startColorAnimation){
+                        drawer.fill = CreateColor()
                     } else{
                         drawer.fill = ColorRGBa.GREEN
                     }
@@ -119,17 +104,7 @@ fun main() = application {
                 for (i in 0..branches_bas) {
 
                     if (seconds > startColorAnimation){
-                        var rnd = Random.nextInt(0, 100);
-
-                        if (rnd % 4 == 0) {
-                            drawer.fill = ColorRGBa(
-                                Random.nextDouble(0.0, 1.0),
-                                Random.nextDouble(0.0, 1.0),
-                                Random.nextDouble(0.0, 1.0)
-                            )
-                        } else {
-                            drawer.fill = ColorRGBa.GREEN
-                        }
+                        drawer.fill = CreateColor()
                     } else{
                         drawer.fill = ColorRGBa.GREEN
                     }
@@ -143,7 +118,6 @@ fun main() = application {
                         )
                         text("CFPT-I")
                     }
-
                     if (i > 0) {
                         x += (baseScale + spacement)
                     }
@@ -167,9 +141,41 @@ fun main() = application {
                         )
                         text("CFPT-I")
                     }
-
-
                 }
+
+            var starRadius = 3000.0
+            var starY = (nbEtages * (baseScale + spacement)) - spacement
+            var starspacement = 200
+
+            // ETOILE
+            drawer.fill = ColorRGBa.YELLOW
+            val cross = compound {
+                union {
+                    intersection {
+                        shape(Circle(0.0 - (starRadius-starspacement), -starY, starRadius).shape)
+                        shape(Circle(0.0 + (starRadius-starspacement), -starY, starRadius).shape)
+                    }
+                    intersection {
+                        shape(Circle(0.0, -starY - (starRadius-starspacement), starRadius).shape)
+                        shape(Circle(0.0, -starY + (starRadius-starspacement), starRadius).shape)
+                    }
+                }
+            }
+            drawer.shapes(cross)
+
             }
         }
     }
+
+fun CreateColor(): ColorRGBa {
+    var rnd = Random.nextInt(0, 100);
+    var color = ColorRGBa.GREEN
+    if (rnd % 3 == 0) {
+        color = ColorRGBa(
+            Random.nextDouble(0.0, 1.0),
+            Random.nextDouble(0.0, 1.0),
+            Random.nextDouble(0.0, 1.0)
+        )
+    }
+    return color
+}
